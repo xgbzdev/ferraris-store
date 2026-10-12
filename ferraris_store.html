@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ferraris Store</title>
+    <style>
+        body {
+            background-color: #111111;
+            color: #ffffff;
+            font-family: sans-serif;
+            margin: 0;
+            padding: 12px;
+        }
+        h1 {
+            font-size: 18px;
+            color: #ff3b30;
+            text-align: center;
+            margin: 0 0 4px 0;
+        }
+        .subtitle {
+            font-size: 11px;
+            color: #888888;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .input-card {
+            background-color: #1c1c1e;
+            border: 1px solid #333333;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 14px;
+        }
+        label {
+            display: block;
+            font-size: 11px;
+            color: #cccccc;
+            margin-bottom: 6px;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            background-color: #000000;
+            border: 1px solid #444444;
+            border-radius: 4px;
+            color: #ffffff;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+        .btn {
+            background-color: #ff3b30;
+            color: #ffffff;
+            border: none;
+            padding: 9px 12px;
+            font-size: 12px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .btn:active {
+            background-color: #d32f2f;
+        }
+        .app-preview {
+            display: none;
+            background-color: #1c1c1e;
+            border: 1px solid #ff3b30;
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 10px;
+        }
+        .app-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .app-icon {
+            width: 48px;
+            height: 48px;
+            background-color: #333333;
+            border-radius: 6px;
+            margin-right: 10px;
+            object-fit: cover;
+        }
+        .app-title {
+            font-size: 15px;
+            font-weight: bold;
+            color: #ffffff;
+            margin: 0;
+        }
+        .app-desc {
+            font-size: 11px;
+            color: #aaaaaa;
+            margin: 4px 0 10px 0;
+            line-height: 1.3;
+        }
+        .status-msg {
+            font-size: 11px;
+            color: #ffcc00;
+            margin-top: 8px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Ferraris Store</h1>
+    <div class="subtitle">Inserisci il link GitHub Pages della repository</div>
+
+    <div class="input-card">
+        <label for="repo-url">URL Repository / GitHub Pages:</label>
+        <input type="text" id="repo-url" placeholder="https://utente.github.io/app/" value="">
+        <button class="btn" onclick="checkManifest()">Verifica e Carica App</button>
+    </div>
+
+    <div id="status" class="status-msg"></div>
+
+    <div id="app-preview" class="app-preview">
+        <div class="app-header">
+            <img id="preview-icon" class="app-icon" src="" alt="Icona" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\'><rect width=\'48\' height=\'48\' fill=\'%23333\'/><text x=\'50%\' y=\'50%\' fill=\'%23fff\' font-size=\'20\' text-anchor=\'middle\' dy=\'.3em\'>APP</text></svg>'">
+            <div>
+                <div id="preview-name" class="app-title">Nome App</div>
+                <div id="preview-version" style="font-size: 10px; color: #888;">v1.0</div>
+            </div>
+        </div>
+        <div id="preview-desc" class="app-desc">Descrizione dell'applicazione...</div>
+        <button class="btn" onclick="installApp()">Installa su Firefox OS</button>
+    </div>
+
+    <script>
+        var currentManifestUrl = "";
+
+        function showStatus(text) {
+            document.getElementById('status').innerText = text;
+        }
+
+        function checkManifest() {
+            var rawUrl = document.getElementById('repo-url').value.trim();
+            document.getElementById('app-preview').style.display = 'none';
+
+            if (!rawUrl) {
+                alert("Inserisci un URL valido.");
+                return;
+            }
+
+            // Normalizza l'URL
+            if (rawUrl.substr(-1) !== '/') {
+                rawUrl += '/';
+            }
+
+            if (rawUrl.indexOf('manifest.webapp') === -1) {
+                currentManifestUrl = rawUrl + 'manifest.webapp';
+            } else {
+                currentManifestUrl = rawUrl;
+            }
+
+            showStatus("Verifica manifest in corso...");
+
+            // Uso XMLHttpRequest per massima compatibilità con i vecchi motori Gecko
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', currentManifestUrl, true);
+
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200 || xhr.status === 0) {
+                        try {
+                            var manifest = JSON.parse(xhr.responseText);
+                            showStatus("");
+
+                            document.getElementById('preview-name').innerText = manifest.name || "App senza nome";
+                            document.getElementById('preview-version').innerText = "v" + (manifest.version || "1.0");
+                            document.getElementById('preview-desc').innerText = manifest.description || "Nessuna descrizione disponibile.";
+
+                            // Gestione icona
+                            var iconPath = "";
+                            if (manifest.icons) {
+                                iconPath = manifest.icons["128"] || manifest.icons["64"] || manifest.icons["32"] || "";
+                            }
+
+                            if (iconPath) {
+                                if (iconPath.indexOf('http') === 0) {
+                                    document.getElementById('preview-icon').src = iconPath;
+                                } else {
+                                    var baseUrl = currentManifestUrl.substring(0, currentManifestUrl.lastIndexOf('/') + 1);
+                                    if (iconPath.charAt(0) === '/') {
+                                        iconPath = iconPath.substring(1);
+                                    }
+                                    document.getElementById('preview-icon').src = baseUrl + iconPath;
+                                }
+                            }
+
+                            document.getElementById('app-preview').style.display = 'block';
+                        } catch (e) {
+                            showStatus("Errore: Il file manifest.webapp non è un JSON valido.");
+                        }
+                    } else {
+                        showStatus("Errore " + xhr.status + ": Impossibile recuperare manifest.webapp");
+                    }
+                }
+            };
+
+            xhr.onerror = function () {
+                showStatus("Errore di rete o blocco CORS nel caricamento del manifest.");
+            };
+
+            xhr.send();
+        }
+
+        function installApp() {
+            if (!currentManifestUrl) {
+                alert("Nessun manifest caricato.");
+                return;
+            }
+
+            if (!navigator.mozApps) {
+                alert("Errore: navigator.mozApps non è disponibile su questo browser.");
+                return;
+            }
+
+            var request = navigator.mozApps.install(currentManifestUrl);
+
+            request.onsuccess = function () {
+                alert("Installazione completata con successo!");
+            };
+
+            request.onerror = function () {
+                var err = this.error ? (this.error.name || this.error) : "Sconosciuto";
+                if (err === "REINSTALL_FORBIDDEN") {
+                    alert("Errore REINSTALL_FORBIDDEN: L'app è già registrata nel sistema o c'è un conflitto di origine. Disinstalla la versione precedente o incrementa la versione nel manifest.");
+                } else {
+                    alert("Errore durante l'installazione: " + err);
+                }
+            };
+        }
+    </script>
+</body>
+</html>
