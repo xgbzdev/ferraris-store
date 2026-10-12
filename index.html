@@ -107,26 +107,26 @@
 <body>
 
     <h1>Ferraris Store</h1>
-    <div class="subtitle">Inserisci il link GitHub Pages della repository</div>
+    <div class="subtitle">Insert the GitHub Repostery</div>
 
     <div class="input-card">
         <label for="repo-url">URL Repository / GitHub Pages:</label>
         <input type="text" id="repo-url" placeholder="https://utente.github.io/app/" value="">
-        <button class="btn" onclick="checkManifest()">Verifica e Carica App</button>
+        <button class="btn" onclick="checkManifest()">Verify and Install App</button>
     </div>
 
     <div id="status" class="status-msg"></div>
 
     <div id="app-preview" class="app-preview">
         <div class="app-header">
-            <img id="preview-icon" class="app-icon" src="" alt="Icona" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\'><rect width=\'48\' height=\'48\' fill=\'%23333\'/><text x=\'50%\' y=\'50%\' fill=\'%23fff\' font-size=\'20\' text-anchor=\'middle\' dy=\'.3em\'>APP</text></svg>'">
+            <img id="preview-icon" class="app-icon" src="" alt="Icon" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\'><rect width=\'48\' height=\'48\' fill=\'%23333\'/><text x=\'50%\' y=\'50%\' fill=\'%23fff\' font-size=\'20\' text-anchor=\'middle\' dy=\'.3em\'>APP</text></svg>'">
             <div>
-                <div id="preview-name" class="app-title">Nome App</div>
+                <div id="preview-name" class="app-title">Name app</div>
                 <div id="preview-version" style="font-size: 10px; color: #888;">v1.0</div>
             </div>
         </div>
-        <div id="preview-desc" class="app-desc">Descrizione dell'applicazione...</div>
-        <button class="btn" onclick="installApp()">Installa su Firefox OS</button>
+        <div id="preview-desc" class="app-desc">App description...</div>
+        <button class="btn" onclick="installApp()">Install on Firefox OS</button>
     </div>
 
     <script>
@@ -141,11 +141,11 @@
             document.getElementById('app-preview').style.display = 'none';
 
             if (!rawUrl) {
-                alert("Inserisci un URL valido.");
+                alert("URL not found.");
                 return;
             }
 
-            // Normalizza l'URL
+       
             if (rawUrl.substr(-1) !== '/') {
                 rawUrl += '/';
             }
@@ -156,9 +156,9 @@
                 currentManifestUrl = rawUrl;
             }
 
-            showStatus("Verifica manifest in corso...");
+            showStatus("Manifest verification in progress...");
 
-            // Uso XMLHttpRequest per massima compatibilità con i vecchi motori Gecko
+    
             var xhr = new XMLHttpRequest();
             xhr.open('GET', currentManifestUrl, true);
 
@@ -173,7 +173,7 @@
                             document.getElementById('preview-version').innerText = "v" + (manifest.version || "1.0");
                             document.getElementById('preview-desc').innerText = manifest.description || "Nessuna descrizione disponibile.";
 
-                            // Gestione icona
+                    
                             var iconPath = "";
                             if (manifest.icons) {
                                 iconPath = manifest.icons["128"] || manifest.icons["64"] || manifest.icons["32"] || "";
@@ -193,16 +193,16 @@
 
                             document.getElementById('app-preview').style.display = 'block';
                         } catch (e) {
-                            showStatus("Errore: Il file manifest.webapp non è un JSON valido.");
+                            showStatus("Error: The manifest.webapp file is not valid JSON.");
                         }
                     } else {
-                        showStatus("Errore " + xhr.status + ": Impossibile recuperare manifest.webapp");
+                        showStatus("Errore " + xhr.status + ": Unable to retrieve manifest.webapp);
                     }
                 }
             };
 
             xhr.onerror = function () {
-                showStatus("Errore di rete o blocco CORS nel caricamento del manifest.");
+                showStatus("Network error or CORS block while loading the manifest.");
             };
 
             xhr.send();
@@ -210,27 +210,27 @@
 
         function installApp() {
             if (!currentManifestUrl) {
-                alert("Nessun manifest caricato.");
+                alert("No manifest uploaded.");
                 return;
             }
 
             if (!navigator.mozApps) {
-                alert("Errore: navigator.mozApps non è disponibile su questo browser.");
+                alert("Error: navigator.mozApps is not available on this browser.");
                 return;
             }
 
             var request = navigator.mozApps.install(currentManifestUrl);
 
             request.onsuccess = function () {
-                alert("Installazione completata con successo!");
+                alert("Error: navigator.mozApps is not available on this browser.");
             };
 
             request.onerror = function () {
                 var err = this.error ? (this.error.name || this.error) : "Sconosciuto";
                 if (err === "REINSTALL_FORBIDDEN") {
-                    alert("Errore REINSTALL_FORBIDDEN: L'app è già registrata nel sistema o c'è un conflitto di origine. Disinstalla la versione precedente o incrementa la versione nel manifest.");
+                    alert("REINSTALL_FORBIDDEN error: The app is already registered in the system, or there is a source conflict. Uninstall the previous version or increment the version in the manifest.");
                 } else {
-                    alert("Errore durante l'installazione: " + err);
+                    alert("Error during installation: " + err);
                 }
             };
         }
